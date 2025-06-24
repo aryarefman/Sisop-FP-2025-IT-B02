@@ -127,10 +127,10 @@ Buat program dimana dapat menyalakan sebuah daemon di background dan melakukan l
 Struktur repository:
 ```
 .
-├── my_daemon.c           
-├── daemon_launcher.c     
-├── Makefile              
-├── README.md              
+├── my_daemon.c           # Source code untuk daemon inti
+├── daemon_launcher.c     # Source code untuk launcher interaktif
+├── Makefile              # Script untuk build, install, dan manajemen proyek
+├── README.md             # Dokumentasi proyek        
 ```
 
 ## Pengerjaan
