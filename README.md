@@ -29,12 +29,108 @@ Buat program dimana dapat menyalakan sebuah daemon di background dan melakukan l
 
 ### Catatan
 
-> Insert catatan dari pengerjaan kalian... (contoh dibawah) // hapus line ini
+1. Deskripsi Proyek
+   - Proyek ini bertujuan untuk membuat program yang dapat menjalankan daemon di background, melakukan listing Process ID (PID), dan menyediakan menu interaktif untuk mengelola daemon, termasuk mematikan daemon tertentu serta memperbarui daftar daemon. Program ini terdiri dari dua komponen utama:
+      - my_daemon.c: Daemon inti yang berjalan di background dengan kemampuan penanganan sinyal dan logging.
+      - daemon_launcher.c: Controller interaktif dengan antarmuka berbasis terminal untuk mengelola daemon.
+    - Proyek ini dibuat sesuai dengan standar daemonisasi Linux dan mendukung multiple instances daemon dengan manajemen PID yang independen.
+
+2. Perencanaan Arsitektur
+    - Kami merancang sistem dengan pemisahan tanggung jawab sebagai berikut:
+      - my_daemon.c: Bertanggung jawab untuk menjalankan daemon yang mematuhi standar daemonisasi Linux, termasuk double fork, detaching dari terminal, dan penanganan sinyal untuk graceful shutdown.
+      - daemon_launcher.c: Berfungsi sebagai antarmuka pengguna dengan menu interaktif untuk mengelola daemon, termasuk meluncurkan, memantau, dan mematikan daemon.
+      - Manajemen PID: Menggunakan file `/tmp/enhanced_daemon.pid` untuk menyimpan PID setiap daemon dan `/tmp/daemon_registry.txt` untuk mencatat semua daemon yang diluncurkan oleh launcher.
+      - Logging: Menggunakan syslog untuk logging sistem dan file debug `/tmp/daemon_debug.log` untuk keperluan debugging.
+
+3. Implementasi Daemon (`my_daemon.c`)
+    - Daemon diimplementasikan dengan fitur berikut:
+      - Daemonisasi:
+        - Melakukan double fork untuk memastikan daemon terpisah dari proses induk.
+        - Mengatur setsid() untuk membuat sesi baru.
+        - Mengatur umask(0) untuk izin file default.
+        - Mengubah direktori kerja ke root (`chdir("/")`).
+        - Menutup file descriptor standar (STDIN, STDOUT, STDERR) dan mengarahkannya ke `/dev/null`.
+      - Penanganan Sinyal:
+        - Menangani SIGTERM untuk graceful shutdown.
+        - Menangani SIGHUP untuk reload konfigurasi.
+        - Menangani SIGINT untuk terminasi langsung.
+        - Mengabaikan SIGCHLD untuk mencegah zombie process.
+      - Logging:
+        - Menggunakan syslog untuk mencatat lifecycle daemon (start, heartbeat, shutdown).
+        - Menulis debug log ke `/tmp/daemon_debug.log`.
+
+      - Heartbeat:
+        - Daemon mencatat statusnya setiap 60 detik (6 iterasi loop dengan sleep 10 detik) ke syslog.
+
+      - PID Storage:
+        - Menyimpan PID ke `/tmp/enhanced_daemon.pid` untuk pelacakan.
+  
+4. Launcher Interaktif (`daemon_launcher.c`)
+    - Launcher menyediakan antarmuka berbasis terminal dengan fitur berikut:
+      - Menu Visual:
+        - Menggunakan ASCII art dan warna ANSI untuk antarmuka yang user-friendly.
+        - Pilihan menu: Launch Daemon, List Daemons, Kill Daemon by PID, Show System Status, Clean Registry, Exit.
+      - Fitur Utama:
+        - Launch Daemon: Meluncurkan instance baru dari `my_daemon` menggunakan `fork()` dan `execl()`. Menyimpan PID dan waktu peluncuran ke `/tmp/daemon_registry.txt`.
+        - List Daemons: Menampilkan tabel dengan PID, status (RUNNING/STOPPED), waktu peluncuran, dan uptime untuk daemon yang masih aktif.
+        - Kill Daemon by PID: Mengirim SIGTERM untuk graceful shutdown, menunggu hingga 10 detik, dan jika gagal, mengirim SIGKILL.
+        - System Status: Menampilkan informasi sistem (PID saat ini, PPID, UID, waktu saat ini) dan statistik daemon (total, aktif, non-aktif, waktu peluncuran tertua/terbaru).
+        - Clean Registry: Menghapus entri daemon yang berstatus STOPPED dari registry.
+        - Auto-Refresh: Memperbarui status daemon sebelum setiap operasi listing atau terminasi.
+      - Manajemen Status:
+        - Mengecek status daemon dengan `kill(pid, 0)` dan membaca `/proc/[pid]/stat` untuk mendeteksi proses zombie.
+
+5. Makefile
+    - Makefile menyediakan perintah untuk:
+      - all: Mengompilasi `my_daemon` dan `daemon_launcher`.
+      - clean: Menghapus file binary dan file sementara (`/tmp/daemon_pids.txt`, `/tmp/temp_daemon.txt`).
+      - install: Menginstal binary ke `/usr/local/bin` dengan izin eksekusi.
+      - uninstall: Menghapus binary dari `/usr/local/bin`.
+      - run: Mengompilasi dan menjalankan `daemon_launcher`.
+      - debug: Mengompilasi dengan simbol debug.
+      - check-logs: Menampilkan log daemon terbaru dari `/var/log/syslog`.
+      - kill-all: Mematikan semua daemon yang terdaftar di registry.
+      - help: Menampilkan panduan penggunaan.
+        
+6. Pengujian
+    - Kami melakukan pengujian untuk memastikan fungsionalitas dan ketahanan sistem:
+      - Multiple Instances:
+        - Meluncurkan beberapa daemon secara bersamaan dan memverifikasi bahwa setiap instance memiliki PID unik dan tercatat dengan benar di registry.
+      - Kill Daemon:
+        - Mematikan daemon tertentu menggunakan opsi Kill by PID dan memastikan shutdown anggun (SIGTERM) berhasil.
+      - Clean Registry:
+        - Menguji penghapusan entri daemon yang sudah mati dari registry.
+      - Edge Cases:
+        - Menguji kasus ketika binary `my_daemon` tidak ada atau tidak executable.
+        - Menguji terminasi PID yang tidak aktif.
+        - Menguji registry kosong atau corrupted.
+      - Logging:
+        - Memverifikasi bahwa log ditulis dengan benar ke syslog dan `/tmp/daemon_debug.log`.
+     
+7. Makefile
+    - Satu perintah `make` akan menghasilkan dua file binary:
+      - `my_daemon`
+      - `launcher`
+    - Perintah `make clean` disediakan untuk menghapus binary dan file PID.
+
+8. Kendala yang Dihadapi
+    - Keterlambatan File PID:
+      - Masalah: File `/tmp/enhanced_daemon.pid` kadang belum tersedia saat launcher mencoba membacanya.
+      - Solusi: Menambahkan delay 3 detik (`sleep(3)`) setelah peluncuran daemon.
+    - Zombie Process:
+      - Masalah: Proses zombie muncul saat daemon dimatikan.
+      - Solusi: Menambahkan `signal(SIGCHLD, SIG_IGN)` untuk mencegah zombie process.
+    - Registry Corruption:
+      - Masalah: Penulisan bersamaan ke /tmp/daemon_registry.txt oleh beberapa daemon menyebabkan format registry rusak.
+      - Solusi: Menyederhanakan akses file dengan serialisasi (meskipun mutex file I/O dipertimbangkan untuk solusi lebih robust).
 
 Struktur repository:
 ```
 .
-..
+├── my_daemon.c           
+├── daemon_launcher.c     
+├── Makefile              
+├── README.md              
 ```
 
 ## Pengerjaan
