@@ -19,7 +19,7 @@ Nama | NRP
 Nadia Kirana Afifah Prahandita | 5027241005
 Arya Bisma Putra Refman | 5027241036 
 Naila Cahyarani Idelia | 5027241063
-S. Farhan Baiq | 5027241097
+S. Farhan Baig | 5027241097
 
 ## Deskripsi Soal
 
