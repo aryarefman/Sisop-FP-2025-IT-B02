@@ -289,8 +289,10 @@ https://github.com/user-attachments/assets/abd7a31c-6c7e-4805-9d57-3e909c17925f
 
 ## Daftar Pustaka
 
-Farjad, A. (2025). Daemons in Linux systems: Security challenges and privilege management. Journal of Cybersecurity Research, 10(2), 1-2. https://doi.org/10.1234/jcr.2025.7890
+Farjad, A. (2025). Daemons in Linux systems: Security challenges and privilege management. Journal of Cybersecurity Research, 10(2), 1–2. https://doi.org/10.1234/jcr.2025.7890
 
-Peng, X., Yuanyuan, L., & Wu, D. (2009). A Model of Distributed Interprocess Communication System. Proceedings of the 1st International Conference on Knowledge Discovery and Data Mining (WKDD 2009), 276-278. IEEE. https://www.researchgate.net/publication/221306183_A_Model_of_Distributed_Interprocess_Communication_System
+Peng, X., Yuanyuan, L., & Wu, D. (2009). A model of distributed interprocess communication system. In Proceedings of the 1st International Conference on Knowledge Discovery and Data Mining (WKDD 2009) (pp. 276–278). IEEE. https://www.researchgate.net/publication/221306183_A_Model_of_Distributed_Interprocess_Communication_System
 
 Zeng, L., Xiao, Y., Chen, H., Sun, B., & Han, W. (2016). Computer operating system logging and security issues: A survey. Security and Communication Networks, 9(17), 4804–4821. https://doi.org/10.1002/sec.1677
+
+Strygin, M., & Thielecke, H. (2012). Operational semantics for signal handling. In B. Luttik & M. A. Reniers (Eds.), Proceedings of the Combined Workshop on Expressiveness in Concurrency and Structural Operational Semantics (EXPRESS/SOS 2012) (EPTCS, 89, pp. 149–163). https://doi.org/10.4204/EPTCS.89.11
