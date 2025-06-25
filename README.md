@@ -243,7 +243,22 @@ Struktur repository:
           fclose(debug);
       }
      ```
-  -Daemon harus memiliki logging untuk monitoring
+- Daemon harus dapat menangani signal untuk graceful shutdown
+   - **Teori**
+      - Salah satu aspek penting dalam pengembangan proses daemon yang andal adalah kemampuannya dalam menangani sinyal secara tepat untuk melakukan graceful shutdown. Signal handling memungkinkan daemon merespons sinyal eksternal, seperti `SIGTERM`, guna menghentikan proses secara bersih tanpa meninggalkan resource yang belum dibebaskan. (Strygin dan Thielecke, 2012) menjelaskan bahwa, "A well known example is the kill signal telling a process to shut down (perhaps after first deallocating system resources, such as releasing memory)." Penanganan sinyal yang terstruktur tidak hanya mencegah kebocoran sumber daya, tetapi juga memastikan bahwa seluruh proses pembersihan (clean-up) terjadi dalam urutan yang benar, terutama ketika terjadi interupsi mendadak. Dalam penelitiannya, Strygin dan Thielecke juga menekankan bahwa, “The defined block-structured form of signal handling requires a signal handler to be installed at the beginning of the block and uninstalled at the end,” yang menegaskan pentingnya pengelolaan siklus hidup sinyal secara eksplisit demi menjamin kestabilan dan keamanan sistem.
+   - **Solusi**
+     ```
+     // Monitoring level sistem melalui syslog
+     openlog("enhanced_daemon", LOG_PID | LOG_CONS, LOG_DAEMON);
+     syslog(LOG_INFO, "🚀 Enhanced Daemon started successfully!");
+     syslog(LOG_INFO, "📋 Process ID: %d", getpid());
+
+     // Monitoring level pengembangan melalui file debug
+     FILE *debug = fopen("/tmp/daemon_debug.log", "a");
+     fprintf(debug, "[%ld] SIGTERM received\n", time(NULL));
+     ```
+
+- Daemon harus memiliki logging untuk monitoring
    - **Teori**
       - Logging merupakan komponen fundamental dalam sistem operasi modern karena berperan penting dalam berbagai aplikasi seperti auditing, tuning sistem, deteksi intrusi, dan digital forensik. Dalam konteks sistem operasi Unix/Linux, mekanisme logging diimplementasikan melalui daemon syslog, yang menyediakan antarmuka pemrograman aplikasi (API) untuk menyederhanakan proses pencatatan dari pengumpulan hingga penyimpanan data. Sebagaimana dijelaskan dalam tinjauan oleh (Zeng et al., 2016) “Logging has become a fundamental feature within the modern computer operating systems because of the fact that logging may be used through a variety of applications and fashion, such as system tuning, auditing, and intrusion detection systems. Syslog daemon is the logging implementation in Unix/Linux platforms” (Zeng et al., 2016). Hal ini menegaskan bahwa daemon logging seperti syslog tidak hanya mencatat aktivitas sistem dan pengguna, tetapi juga berperan sentral dalam menjaga integritas sistem, memfasilitasi audit, serta mendukung sistem deteksi intrusi secara real-time. Oleh karena itu, penerapan logging pada daemon merupakan elemen kritis dalam arsitektur monitoring dan keamanan sistem operasi.
    - **Solusi**
