@@ -243,6 +243,33 @@ Struktur repository:
           fclose(debug);
       }
      ```
+  -Daemon harus memiliki logging untuk monitoring
+   - **Teori 2**
+      - Logging merupakan komponen fundamental dalam sistem operasi modern karena berperan penting dalam berbagai aplikasi seperti auditing, tuning sistem, deteksi intrusi, dan digital forensik. Dalam konteks sistem operasi Unix/Linux, mekanisme logging diimplementasikan melalui daemon syslog, yang menyediakan antarmuka pemrograman aplikasi (API) untuk menyederhanakan proses pencatatan dari pengumpulan hingga penyimpanan data. Sebagaimana dijelaskan dalam tinjauan oleh (Zeng et al., 2016) “Logging has become a fundamental feature within the modern computer operating systems because of the fact that logging may be used through a variety of applications and fashion, such as system tuning, auditing, and intrusion detection systems. Syslog daemon is the logging implementation in Unix/Linux platforms” (Zeng et al., 2016). Hal ini menegaskan bahwa daemon logging seperti syslog tidak hanya mencatat aktivitas sistem dan pengguna, tetapi juga berperan sentral dalam menjaga integritas sistem, memfasilitasi audit, serta mendukung sistem deteksi intrusi secara real-time. Oleh karena itu, penerapan logging pada daemon merupakan elemen kritis dalam arsitektur monitoring dan keamanan sistem operasi.
+   - **Solusi**
+     ```
+     //Logging ke syslog (Monitoring Level Sistem)//
+      openlog("enhanced_daemon", LOG_PID | LOG_CONS, LOG_DAEMON);
+      syslog(LOG_INFO, "🚀 Enhanced Daemon started successfully!");
+      syslog(LOG_INFO, "📋 Process ID: %d", getpid()); 
+     ```
+     ```
+     // Logging ke file debug (Monitoring Level Pengembangan)//
+     FILE *debug = fopen("/tmp/daemon_debug.log", "a");
+     fprintf(debug, "[%ld] SIGTERM received\n", time(NULL));
+     ```
+     ```
+     //Heartbeat log rutin (Monitoring Kesehatan Proses)//
+     if (loop_count % 6 == 1) {
+     syslog(LOG_INFO, "💓 Daemon heartbeat - Loop #%d, Uptime: %d seconds", 
+     loop_count, uptime);
+     }
+     ```
+     ```
+     //Statistik saat shutdown (Auditing & Forensik)//
+     syslog(LOG_INFO, "📊 Daemon shutdown statistics:");
+     syslog(LOG_INFO, "   • Total loops executed: %d", loop_count);
+     ```
 
 **Video Menjalankan Program**
 
@@ -254,4 +281,4 @@ Farjad, A. (2025). Daemons in Linux systems: Security challenges and privilege m
 
 Peng, X., Yuanyuan, L., & Wu, D. (2009). A Model of Distributed Interprocess Communication System. Proceedings of the 1st International Conference on Knowledge Discovery and Data Mining (WKDD 2009), 276-278. IEEE. https://www.researchgate.net/publication/221306183_A_Model_of_Distributed_Interprocess_Communication_System
 
-Sitasi 3
+Zeng, L., Xiao, Y., Chen, H., Sun, B., & Han, W. (2016). Computer operating system logging and security issues: A survey. Security and Communication Networks, 9(17), 4804–4821. https://doi.org/10.1002/sec.1677
