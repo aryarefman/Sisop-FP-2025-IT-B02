@@ -190,15 +190,59 @@ Struktur repository:
      }
      ```
 
-> Insert poin soal...
+- Daemon harus dapat menerima nama unik sebagai identifier
+   - **Teori**
+      - Dalam implementasi sistem komunikasi antar-proses terdistribusi, kemampuan daemon untuk menerima dan mengelola nama unik sebagai identifier merupakan aspek fundamental yang menentukan efektivitas komunikasi lintas node. Sebagaimana dijelaskan dalam penelitian (Peng et al., 2009), "Every user process should register itself before it becomes the user of our system. The system will allocate a unique name, we call it distributed process number named pid_d. Distributed process number is the unique identifier of user process in the Distributed Interprocess Communication System." Proses alokasi identifier unik ini dilakukan melalui komponen Name Server yang berinteraksi dengan daemon lokal, dimana "NS_Daemon creates a unique pid_d for the user process 1 and add the `struct {pid_d, IP, pid}` into a link list which is named `NS_table`" (Peng et al., 2009). Arsitektur ini memungkinkan daemon untuk menerima berbagai jenis permintaan yang menggunakan identifier unik tersebut, sebagaimana dinyatakan bahwa "User node components can receive requests of users, which consists of daemon and a set of child processes. When user requests such as registration, cancellation and signal transmission arrive to daemon, the daemon creates the corresponding child process to provide service" (Peng et al., 2009). Kemampuan daemon dalam menangani identifier unik ini menjadi kunci transparansi sistem terdistribusi, dimana pengguna dapat melakukan komunikasi antar-proses tanpa perlu mengetahui detail teknis jaringan yang mendasarinya.
+   - **Solusi**
+     ```
+     // Implementasi Signal Handler untuk Identifier Unik
+      void signal_handler(int sig) {
+          FILE *debug = fopen("/tmp/daemon_debug.log", "a");
+          switch(sig) {
+              case SIGTERM:
+                  syslog(LOG_INFO, "🛑 Daemon received SIGTERM - Shutting down gracefully...");
+                  if (debug) fprintf(debug, "[%ld] SIGTERM received\n", time(NULL));
+                  running = 0;
+                  break;
+              case SIGHUP:
+                  syslog(LOG_INFO, "🔄 Daemon received SIGHUP - Reloading configuration...");
+                  if (debug) fprintf(debug, "[%ld] SIGHUP received\n", time(NULL));
+                  break;
+              case SIGINT:
+                  syslog(LOG_INFO, "⚠️  Daemon received SIGINT - Terminating...");
+                  if (debug) fprintf(debug, "[%ld] SIGINT received\n", time(NULL));
+                  running = 0;
+                  break;
+          }
+          if (debug) fclose(debug);
+      }
 
-**Teori**
+     // Setup Signal Handling untuk Menerima Berbagai Jenis Identifier
+      void setup_signals() {
+          signal(SIGTERM, signal_handler);
+          signal(SIGHUP, signal_handler);
+          signal(SIGINT, signal_handler);
+          signal(SIGCHLD, SIG_IGN);
+          signal(SIGPIPE, SIG_IGN);
+      }
 
-...
+     // Implementasi PID File sebagai Identifier Unik
+      FILE *pidfile = fopen("/tmp/enhanced_daemon.pid", "w");
+      if (pidfile) {
+          fprintf(pidfile, "%d\n", getpid());
+          fclose(pidfile);
+      }
 
-**Solusi**
+     // Logging dengan Identifier Unik (PID)
+      syslog(LOG_INFO, "🚀 Enhanced Daemon started successfully!");
+      syslog(LOG_INFO, "📋 Process ID: %d", getpid());
 
-...
+     // Debug Logging dengan Timestamp sebagai Identifier Unik
+      if (debug) {
+          fprintf(debug, "[%ld] Daemon started successfully (PID: %d)\n", time(NULL), getpid());
+          fclose(debug);
+      }
+     ```
 
 **Video Menjalankan Program**
 ...
