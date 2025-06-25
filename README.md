@@ -250,5 +250,7 @@ Struktur repository:
 ## Daftar Pustaka
 
 Farjad, A. (2025). Daemons in Linux systems: Security challenges and privilege management. Journal of Cybersecurity Research, 10(2), 1-2. https://doi.org/10.1234/jcr.2025.7890
-Sitasi 2
+
+Peng, X., Yuanyuan, L., & Wu, D. (2009). A Model of Distributed Interprocess Communication System. Proceedings of the 1st International Conference on Knowledge Discovery and Data Mining (WKDD 2009), 276-278. IEEE. https://www.researchgate.net/publication/221306183_A_Model_of_Distributed_Interprocess_Communication_System
+
 Sitasi 3
