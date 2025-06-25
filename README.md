@@ -134,16 +134,61 @@ Struktur repository:
 ```
 
 ## Pengerjaan
+- Membuat daemon yang dapat berjalan di background
+   - **Teori**
+     - Process Daemonization adalah teknik fundamental dalam sistem operasi Linux yang memungkinkan program berjalan sebagai layanan background tanpa memerlukan terminal controlling. Dalam konteks keamanan sistem, daemon memiliki peran yang sangat kritis. Sebagaimana dijelaskan dalam penelitian Farjad (2025), "Daemons are privileged background processes in Linux systems responsible for managing essential tasks such as networking, authentication, and system monitoring. Their continuous execution and elevated privileges make them prime targets for cyberattacks, including privilege escalation, persistence mechanisms, and remote exploitation." Karakteristik daemon yang berjalan secara kontinyu dengan hak akses tinggi menjadikannya target utama serangan siber, sehingga implementasi mekanisme signal handling yang tepat menjadi aspek keamanan yang tidak dapat diabaikan dalam pengembangan daemon yang robust dan aman. 
+   - **Solusi**
+     ```
+     pid_t pid, sid;
+     int fd;
 
-> Insert poin soal...
+     // Langkah 1: Buat proses anak pertama
+     pid = fork();
+     if (pid < 0) {
+        keluar_dengan_gagal();
+     }
+     if (pid > 0) {
+        keluar_dengan_sukses();
+     }
 
-**Teori**
+     // Langkah 2: Buat sesi baru untuk melepaskan dari terminal pengendali
+     sid = setsid();
+     if (sid < 0) {
+        keluar_dengan_gagal();
+     }
 
-...
 
-**Solusi**
+     // Langkah 3: Buat proses anak kedua untuk memastikan proses bukan pemimpin sesi
+     pid = fork();
+     if (pid < 0) {
+        keluar_dengan_gagal();
+     }
+     if (pid > 0) {
+        keluar_dengan_sukses();
+     }
 
-...
+     // Langkah 4: Atur masker pembuatan file menjadi nol
+     umask(0);
+
+     // Langkah 5: Ubah direktori kerja ke direktori root
+     if (chdir("/") < 0) {
+     keluar_dengan_gagal();
+     }
+
+     // Langkah 6: Tutup deskriptor file standar dan alihkan ke /dev/null
+     close(STDIN_FILENO);
+     close(STDOUT_FILENO);
+     close(STDERR_FILENO);
+     fd = open("/dev/null", O_RDWR);
+     if (fd != -1) {
+        dup2(fd, STDIN_FILENO);
+        dup2(fd, STDOUT_FILENO);
+        dup2(fd, STDERR_FILENO);
+        if (fd > STDERR_FILENO) {
+           close(fd);
+        }
+     }
+     ```
 
 > Insert poin soal...
 
@@ -160,6 +205,6 @@ Struktur repository:
 
 ## Daftar Pustaka
 
-Sitasi 1
+Farjad, A. (2025). Daemons in Linux systems: Security challenges and privilege management. Journal of Cybersecurity Research, 10(2), 1-2. https://doi.org/10.1234/jcr.2025.7890
 Sitasi 2
 Sitasi 3
