@@ -136,7 +136,7 @@ Struktur repository:
 ## Pengerjaan
 - Daemon dapat menuliskan PID ke file untuk tracking
    - **Teori**
-     - Salah satu praktik terbaik dalam pengembangan proses daemon pada sistem operasi UNIX adalah menuliskan Process ID (PID) ke dalam sebuah file untuk keperluan pelacakan dan manajemen. Berdasarkan dokumentasi komunitas UNIX/Linux yang dirujuk melalui Stack Overflow (2023), penulisan PID oleh proses daemon sendiri merupakan mekanisme penting untuk memastikan bahwa hanya satu instance daemon yang berjalan dalam satu waktu. File PID ini berfungsi sebagai penanda aktifnya suatu proses daemon, sehingga jika ada instance lain yang mencoba dijalankan, sistem dapat mendeteksinya dan mencegah duplikasi proses. Selain itu, proses penulisan PID harus dilakukan secara race-free menggunakan teknik penguncian file seperti `lockf` agar tidak terjadi kondisi balapan antar proses. Hal ini memastikan bahwa hanya satu daemon yang dapat menulis dan mengakses file PID secara eksklusif. Penulisan PID ke file juga memungkinkan integrasi dengan program pengelola seperti `daemon_launcher.c`, yang membutuhkan informasi PID untuk melakukan operasi seperti listing, monitoring, atau terminasi daemon. Oleh karena itu, kemampuan daemon untuk menuliskan PID secara aman ke file merupakan bagian esensial dalam desain sistem daemon yang stabil, aman, dan mudah dikendalikan.
+     - Salah satu praktik penting dalam pengembangan daemon pada sistem operasi UNIX adalah menuliskan Process ID (PID) ke dalam file untuk keperluan manajemen dan pelacakan. Robbins (2002) dalam Linux Journal menekankan bahwa “daemon programs should write their PID to a file, typically located in /var/run, to make it easier for administrators and other programs to track and control their execution.” Penulisan PID ini memungkinkan sistem atau program lain seperti `daemon_launcher.c` untuk melakukan pengecekan status, menghindari duplikasi proses daemon, dan menyediakan kontrol seperti terminasi atau monitoring. Praktik ini juga mendukung stabilitas dan keandalan sistem daemon, terutama ketika daemon berjalan dalam jangka panjang di background dan perlu dikelola secara terprogram. Oleh karena itu, integrasi mekanisme penyimpanan PID yang aman dan konsisten menjadi bagian tak terpisahkan dalam desain arsitektur daemon.
 
    - **Solusi**
       ```
@@ -158,6 +158,7 @@ Struktur repository:
       fprintf(debug, "[%ld] Daemon started successfully (PID: %d)\n", time(NULL), getpid());
       fclose(debug);
       }
+
       ```
 
 - Membuat daemon yang dapat berjalan di background
