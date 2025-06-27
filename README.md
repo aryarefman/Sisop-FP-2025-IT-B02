@@ -316,6 +316,9 @@ https://github.com/user-attachments/assets/abd7a31c-6c7e-4805-9d57-3e909c17925f
 
 ## Daftar Pustaka
 
+Shichao, Z. (n.d.). Chapter 13: Daemon Processes. In Advanced Programming in the Unix Environment – Notes.
+https://notes.shichao.io/apue/ch13/
+
 Farjad, A. (2025). Daemons in Linux systems: Security challenges and privilege management. Journal of Cybersecurity Research, 10(2), 1–2. https://doi.org/10.1234/jcr.2025.7890
 
 Peng, X., Yuanyuan, L., & Wu, D. (2009). A model of distributed interprocess communication system. In Proceedings of the 1st International Conference on Knowledge Discovery and Data Mining (WKDD 2009) (pp. 276–278). IEEE. https://www.researchgate.net/publication/221306183_A_Model_of_Distributed_Interprocess_Communication_System
