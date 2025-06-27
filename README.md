@@ -136,28 +136,29 @@ Struktur repository:
 ## Pengerjaan
 - Daemon dapat menuliskan PID ke file untuk tracking
    - **Teori**
-     - Salah satu praktik penting dalam pengembangan daemon pada sistem operasi UNIX adalah menuliskan Process ID (PID) ke dalam file untuk keperluan manajemen dan pelacakan. Robbins (2002) dalam Linux Journal menekankan bahwa “daemon programs should write their PID to a file, typically located in /var/run, to make it easier for administrators and other programs to track and control their execution.” Penulisan PID ini memungkinkan sistem atau program lain seperti `daemon_launcher.c` untuk melakukan pengecekan status, menghindari duplikasi proses daemon, dan menyediakan kontrol seperti terminasi atau monitoring. Praktik ini juga mendukung stabilitas dan keandalan sistem daemon, terutama ketika daemon berjalan dalam jangka panjang di background dan perlu dikelola secara terprogram. Oleh karena itu, integrasi mekanisme penyimpanan PID yang aman dan konsisten menjadi bagian tak terpisahkan dalam desain arsitektur daemon.
+     - Dalam pengembangan proses daemon pada sistem operasi UNIX, penulisan Process ID (PID) ke dalam sebuah file merupakan praktik standar yang umum dilakukan untuk memudahkan pelacakan dan pengendalian daemon tersebut. Berdasarkan pembahasan dalam Advanced Programming in the Unix Environment – Chapter 13: Daemon Processes oleh Shichao Zhou (2023), proses daemonisasi melibatkan langkah-langkah seperti double fork, pengalihan terminal, dan setup lingkungan eksekusi. Salah satu komponen penting setelah proses daemon berhasil dimulai adalah menyimpan PID ke file. Hal ini berguna bagi proses administratif lain yang perlu mengirim sinyal atau memantau status daemon, sekaligus mencegah terjadinya eksekusi daemon ganda. Dengan menyimpan PID secara eksplisit ke file, pengelolaan daemon menjadi lebih terstruktur dan aman dalam konteks sistem multi-proses.
 
    - **Solusi**
       ```
-         // Membuka file untuk menuliskan PID daemon
+       // Implementasi PID File sebagai Identifier Unik
       FILE *pidfile = fopen("/tmp/enhanced_daemon.pid", "w");
       if (pidfile) {
-       fprintf(pidfile, "%d\n", getpid());   // Menyimpan PID daemon ke file
-       fclose(pidfile);
+      fprintf(pidfile, "%d\n", getpid());
+      fclose(pidfile);
       }
 
-      // Logging PID ke syslog
+      // Logging dengan Identifier Unik (PID)
       openlog("enhanced_daemon", LOG_PID | LOG_CONS, LOG_DAEMON);
       syslog(LOG_INFO, "🚀 Enhanced Daemon started successfully!");
       syslog(LOG_INFO, "📋 Process ID: %d", getpid());
 
-      // Logging PID ke file debug untuk pengembangan
+      // Debug Logging dengan Timestamp sebagai Identifier Unik
       FILE *debug = fopen("/tmp/daemon_debug.log", "a");
       if (debug) {
       fprintf(debug, "[%ld] Daemon started successfully (PID: %d)\n", time(NULL), getpid());
       fclose(debug);
       }
+
 
       ```
 
