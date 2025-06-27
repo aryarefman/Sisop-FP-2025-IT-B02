@@ -158,8 +158,6 @@ Struktur repository:
       fprintf(debug, "[%ld] Daemon started successfully (PID: %d)\n", time(NULL), getpid());
       fclose(debug);
       }
-
-
       ```
 
 - Membuat daemon yang dapat berjalan di background
