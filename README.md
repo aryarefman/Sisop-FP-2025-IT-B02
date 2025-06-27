@@ -139,7 +139,27 @@ Struktur repository:
      - Salah satu praktik terbaik dalam pengembangan proses daemon pada sistem operasi UNIX adalah menuliskan Process ID (PID) ke dalam sebuah file untuk keperluan pelacakan dan manajemen. Berdasarkan dokumentasi komunitas UNIX/Linux yang dirujuk melalui Stack Overflow (2023), penulisan PID oleh proses daemon sendiri merupakan mekanisme penting untuk memastikan bahwa hanya satu instance daemon yang berjalan dalam satu waktu. File PID ini berfungsi sebagai penanda aktifnya suatu proses daemon, sehingga jika ada instance lain yang mencoba dijalankan, sistem dapat mendeteksinya dan mencegah duplikasi proses. Selain itu, proses penulisan PID harus dilakukan secara race-free menggunakan teknik penguncian file seperti `lockf` agar tidak terjadi kondisi balapan antar proses. Hal ini memastikan bahwa hanya satu daemon yang dapat menulis dan mengakses file PID secara eksklusif. Penulisan PID ke file juga memungkinkan integrasi dengan program pengelola seperti `daemon_launcher.c`, yang membutuhkan informasi PID untuk melakukan operasi seperti listing, monitoring, atau terminasi daemon. Oleh karena itu, kemampuan daemon untuk menuliskan PID secara aman ke file merupakan bagian esensial dalam desain sistem daemon yang stabil, aman, dan mudah dikendalikan.
 
    - **Solusi**
-      
+      ```
+         // Membuka file untuk menuliskan PID daemon
+      FILE *pidfile = fopen("/tmp/enhanced_daemon.pid", "w");
+      if (pidfile) {
+       fprintf(pidfile, "%d\n", getpid());   // Menyimpan PID daemon ke file
+       fclose(pidfile);
+      }
+
+      // Logging PID ke syslog
+      openlog("enhanced_daemon", LOG_PID | LOG_CONS, LOG_DAEMON);
+      syslog(LOG_INFO, "🚀 Enhanced Daemon started successfully!");
+      syslog(LOG_INFO, "📋 Process ID: %d", getpid());
+
+      // Logging PID ke file debug untuk pengembangan
+      FILE *debug = fopen("/tmp/daemon_debug.log", "a");
+      if (debug) {
+      fprintf(debug, "[%ld] Daemon started successfully (PID: %d)\n", time(NULL), getpid());
+      fclose(debug);
+      }
+      ```
+
 - Membuat daemon yang dapat berjalan di background
    - **Teori**
      - Process Daemonization adalah teknik fundamental dalam sistem operasi Linux yang memungkinkan program berjalan sebagai layanan background tanpa memerlukan terminal controlling. Dalam konteks keamanan sistem, daemon memiliki peran yang sangat kritis. Sebagaimana dijelaskan dalam penelitian (Farjad,2025), "Daemons are privileged background processes in Linux systems responsible for managing essential tasks such as networking, authentication, and system monitoring. Their continuous execution and elevated privileges make them prime targets for cyberattacks, including privilege escalation, persistence mechanisms, and remote exploitation." Karakteristik daemon yang berjalan secara kontinu dengan hak akses tinggi menjadikannya target utama serangan siber, sehingga implementasi mekanisme signal handling yang tepat menjadi aspek keamanan yang tidak dapat diabaikan dalam pengembangan daemon yang robust dan aman. 
